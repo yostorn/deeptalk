@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deep Talk Card Game</title>
+    <style>
+        :root {
+            --primary-color: #ff6b6b;
+            --secondary-color: #4ecdc4;
+            --dark-color: #292f36;
+            --light-color: #f7fff7;
+            --shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Prompt', sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            width: 100%;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: var(--dark-color);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+        
+        h2 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+        }
+        
+        .game-area {
+            background-color: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+        }
+        
+        .categories {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .category {
+            background-color: var(--secondary-color);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: var(--shadow);
+        }
+        
+        .category:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        }
+        
+        .category h3 {
+            color: white;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+        }
+        
+        .category p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.9rem;
+        }
+        
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .card {
+            position: relative;
+            height: 250px;
+            perspective: 1000px;
+            cursor: pointer;
+        }
+        
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        
+        .card.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+        
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            box-shadow: var(--shadow);
+        }
+        
+        .card-front {
+            background-color: var(--primary-color);
+            color: white;
+            font-size: 1.8rem;
+        }
+        
+        .card-back {
+            background-color: white;
+            color: var(--dark-color);
+            transform: rotateY(180deg);
+            font-size: 1.1rem;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            border: 2px solid var(--primary-color);
+        }
+        
+        .opened-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            z-index: 1;
+        }
+        
+        .controls {
+            margin-top: 30px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 50px;
+            background-color: var(--primary-color);
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            font-weight: bold;
+            box-shadow: var(--shadow);
+        }
+        
+        button:hover {
+            background-color: #ff5252;
+            transform: translateY(-2px);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button.secondary {
+            background-color: var(--secondary-color);
+        }
+        
+        button.secondary:hover {
+            background-color: #3dbeb6;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .emoji {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .categories {
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            h2 {
+                font-size: 1.5rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .cards {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+        }
+        
+        /* Animation */
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+            40% {transform: translateY(-20px);}
+            60% {transform: translateY(-10px);}
+        }
+        
+        .bounce {
+            animation: bounce 1s;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔥 การ์ด Deep Talk 🔥</h1>
+            <p>เวอร์ชันสนุกขึ้น 20% สำหรับคุยในกลุ่มเพื่อน</p>
+        </header>
+        
+        <div class="game-area">
+            <div id="categories-container" class="categories">
+                <!-- Categories will be generated here -->
+            </div>
+            
+            <div id="cards-container" class="cards hidden">
+                <!-- Cards will be generated here -->
+            </div>
+            
+            <div class="controls">
+                <button id="back-btn" class="hidden secondary">กลับไปเลือกหมวด</button>
+                <button id="new-round-btn" class="hidden">เริ่มใบใหม่</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game data
+        const gameData = {
+            categories: [
+                {
+                    id: 'past',
+                    title: 'หมวดอดีต & การเติบโต',
+                    emoji: '⏳',
+                    cards: [
+                        'ถ้าย้อนเวลากลับไปแนะนำตัวเองตอนเด็กได้ คุณจะพูดอะไรกับตัวเองเป็นประโยคแรก?',
+                        'ตอนเด็กๆ เคยมีความฝันอะไรที่ตอนนี้คิดแล้วขำตัวเองบ้าง?',
+                        'มีเหตุการณ์อะไรที่เคยทำให้คุณรู้สึกว่า "โห ฉันนี่มันเด็กจริงๆ"?',
+                        'ถ้าต้องเลือกฉากหนึ่งจากวัยเด็กมาเล่าเป็นหนัง คุณจะเลือกฉากไหน?',
+                        'คุณเคยมี "แฟชั่นพังๆ" ตอนเด็กที่ตอนนี้นึกถึงแล้วอยากแกล้งลืมบ้างไหม?'
+                    ]
+                },
+                {
+                    id: 'present',
+                    title: 'หมวดปัจจุบัน & ความสุขในชีวิต',
+                    emoji: '😊',
+                    cards: [
+                        'ตอนนี้คุณมี "ความสุขราคาถูก" อะไรบ้าง? (เช่น กินมาม่าตอนดึก, ได้ที่จอดรถดีๆ ฯลฯ)',
+                        'ถ้าคุณต้องเลือก 1 อย่างที่ทำให้คุณหัวเราะได้เสมอ (ไม่ว่าจะเป็นคลิป, มุก, คน, หรือเหตุการณ์) แล้วต้องดู/ฟังมันวนซ้ำไป 3 ชั่วโมงเต็ม คุณจะเลือกอะไร? และคิดว่าหลังจากนั้นยังจะขำอยู่มั้ย?',
+                        'ถ้าชีวิตคุณเป็นเกม ตอนนี้คุณอยู่เลเวลไหน และมีสกิลอะไรบ้าง?',
+                        'คุณคิดว่าตัวเองเป็นตัวละครประเภทไหนในหนังหรือละคร?',
+                        'ถ้าตอนนี้ชีวิตคุณต้องมีเพลงธีมซาวด์แทร็กประกอบ จะเป็นเพลงอะไร?'
+                    ]
+                },
+                {
+                    id: 'future',
+                    title: 'หมวดอนาคต & ความฝัน',
+                    emoji: '🚀',
+                    cards: [
+                        'ถ้าคุณสามารถทำอะไรก็ได้โดยไม่มีวันพลาด... คุณจะลองทำอะไรที่โคตรบ้าดูบ้างไหม? (เช่น หยิบไมค์ขึ้นไปแรปบนเวทีคอนเสิร์ต, ลงแข่งมวยแบบไม่มีซ้อม, ขึ้นเวที TED Talk โดยไม่เตรียมตัว ฯลฯ)',
+                        'ถ้าคุณต้องออดิชั่นรายการวาไรตี้เพื่อโชว์ความสามารถพิเศษ จะโชว์อะไร?',
+                        'ถ้าคุณมีเวลา 24 ชั่วโมงที่จะใช้ชีวิตแบบคนดัง คุณอยากเป็นใคร และจะทำอะไร?',
+                        'ถ้าคุณสามารถ FaceTime กับตัวเองในอีก 10 ปีข้างหน้าได้ แต่มีเวลาแค่ 30 วินาที คุณจะรีบถามอะไรให้ทันก่อนหมดเวลา? (และคิดว่าตัวเองในอนาคตจะทำหน้างงมั้ย?)',
+                        'มีอะไรที่อยากทำสักครั้งในชีวิต แต่ไม่กล้าทำ?'
+                    ]
+                },
+                {
+                    id: 'relationship',
+                    title: 'หมวดความสัมพันธ์ & มุมมองต่อคนรอบข้าง',
+                    emoji: '👫',
+                    cards: [
+                        'เพื่อนๆ หรือคนรอบตัวมักบอกว่าคุณมีนิสัยแปลกๆ เรื่องไหนบ้าง?',
+                        'ถ้าคุณสามารถ "รีวิว" เพื่อนสนิทของคุณบนแอปเหมือนรีวิวร้านอาหาร คุณจะให้กี่ดาว และทำไม?',
+                        'ถ้าคุณต้องเลือกสัตว์มาเป็นตัวแทนบุคลิกของตัวเอง คุณจะเลือกสัตว์อะไร?',
+                        'คุณมีนิสัยแปลกๆ อะไรที่คิดว่าถ้าเอาไปบอกคนอื่นแล้วเขาจะตกใจ?',
+                        'ถ้าต้องเลือก 3 คนในชีวิตไปติดเกาะด้วยกัน คุณจะเลือกใคร?'
+                    ]
+                },
+                {
+                    id: 'self',
+                    title: 'หมวดสำรวจตัวเอง & มุมมองชีวิต',
+                    emoji: '🧠',
+                    cards: [
+                        'ถ้าคุณสามารถให้ฉายาตัวเองได้หนึ่งชื่อ จะตั้งว่าอะไร?',
+                        'มีอะไรที่คนทั้งโลกดูจะชอบกันหมด แต่คุณกลับไม่อินเอาซะเลย... แล้วเคยพยายามลองอินตามกระแสบ้างไหม? ผลลัพธ์เป็นไง?',
+                        'ถ้าคุณมีพลังพิเศษ 1 อย่างที่ใช้ได้แค่วันนี้ คุณจะเลือกพลังอะไร?',
+                        'ถ้าต้องสลับร่างกับคนในห้องนี้ 24 ชั่วโมง คุณอยากสลับกับใคร และจะใช้ชีวิตเขายังไง?',
+                        'ถ้าชีวิตคุณต้องกลายเป็นรายการเรียลลิตี้โชว์ คุณคิดว่ามันจะชื่ออะไร?',
+                        'อะไรคือสิ่งที่คุณเคยมั่นใจมาก แต่ตอนนี้คิดว่าผิดเต็มๆ?',
+                        'ถ้าต้องอธิบายชีวิตตัวเองด้วยชื่อหนัง 1 เรื่อง จะเป็นเรื่องอะไร?',
+                        'ถ้าคุณต้องทำอาชีพใหม่ที่ไม่มีใครคาดคิดว่าคุณจะทำได้ คุณจะเลือกทำอะไร?',
+                        'ถ้าคุณสามารถออกแบบกฎ 1 ข้อให้ทุกคนในโลกต้องทำตามได้ 24 ชั่วโมง คุณจะตั้งกฎอะไร?',
+                        'ถ้าคุณสามารถส่ง "ข้อความด่วน" กลับไปหาตัวเองในอดีต แต่มีข้อแม้ว่ามันต้องเป็นมุกขำขันเท่านั้น คุณจะส่งว่าอะไร?'
+                    ]
+                }
+            ]
+        };
+        
+        // Global state
+        const gameState = {
+            currentCategory: null,
+            openedCards: new Set(),
+            remainingCategories: [...gameData.categories]
+        };
+        
+        // DOM Elements
+        const categoriesContainer = document.getElementById('categories-container');
+        const cardsContainer = document.getElementById('cards-container');
+        const backBtn = document.getElementById('back-btn');
+        const newRoundBtn = document.getElementById('new-round-btn');
+        
+        // Initialize game
+        function initGame() {
+            renderCategories();
+            setupEventListeners();
+        }
+        
+        // Render categories
+        function renderCategories() {
+            categoriesContainer.innerHTML = '';
+            
+            gameState.remainingCategories.forEach(category => {
+                const categoryEl = document.createElement('div');
+                categoryEl.className = 'category';
+                categoryEl.dataset.id = category.id;
+                
+                categoryEl.innerHTML = `
+                    <div class="emoji">${category.emoji}</div>
+                    <h3>${category.title}</h3>
+                    <p>${category.cards.length} การ์ด</p>
+                `;
+                
+                categoriesContainer.appendChild(categoryEl);
+            });
+        }
+        
+        // Render cards for a category
+        function renderCards(categoryId) {
+            cardsContainer.innerHTML = '';
+            
+            const category = gameState.remainingCategories.find(cat => cat.id === categoryId);
+            if (!category) return;
+            
+            gameState.currentCategory = category;
+            
+            category.cards.forEach((card, index) => {
+                // Skip cards that have been opened
+                if (gameState.openedCards.has(`${categoryId}-${index}`)) return;
+                
+                const cardEl = document.createElement('div');
+                cardEl.className = 'card';
+                cardEl.dataset.id = `${categoryId}-${index}`;
+                
+                cardEl.innerHTML = `
+                    <div class="card-inner">
+                        <div class="card-front">
+                            <span>?</span>
+                        </div>
+                        <div class="card-back">
+                            <p>${card}</p>
+                        </div>
+                    </div>
+                `;
+                
+                cardsContainer.appendChild(cardEl);
+            });
+            
+            // Show cards container, hide categories
+            categoriesContainer.classList.add('hidden');
+            cardsContainer.classList.remove('hidden');
+            backBtn.classList.remove('hidden');
+            
+            // Show new round button if at least one card is opened
+            if (gameState.openedCards.size > 0) {
+                newRoundBtn.classList.remove('hidden');
+            }
+        }
+        
+        // Setup event listeners
+        function setupEventListeners() {
+            // Category selection
+            categoriesContainer.addEventListener('click', (e) => {
+                const category = e.target.closest('.category');
+                if (category) {
+                    const categoryId = category.dataset.id;
+                    renderCards(categoryId);
+                }
+            });
+            
+            // Card flipping
+            cardsContainer.addEventListener('click', (e) => {
+                const card = e.target.closest('.card');
+                if (card && !card.classList.contains('flipped')) {
+                    // Flip the card
+                    card.classList.add('flipped');
+                    
+                    // Mark as opened
+                    const cardId = card.dataset.id;
+                    gameState.openedCards.add(cardId);
+                    
+                    // Add opened badge
+                    const badge = document.createElement('div');
+                    badge.className = 'opened-badge';
+                    badge.textContent = 'เปิดแล้ว';
+                    card.appendChild(badge);
+                    
+                    // Show new round button
+                    newRoundBtn.classList.remove('hidden');
+                }
+            });
+            
+            // Back button
+            backBtn.addEventListener('click', () => {
+                cardsContainer.classList.add('hidden');
+                categoriesContainer.classList.remove('hidden');
+                backBtn.classList.add('hidden');
+                newRoundBtn.classList.add('hidden');
+                gameState.currentCategory = null;
+            });
+            
+            // New round button
+            newRoundBtn.addEventListener('click', () => {
+                // Remove empty categories (all cards opened)
+                gameState.remainingCategories = gameState.remainingCategories.filter(category => {
+                    const remainingCards = category.cards.filter((_, index) => 
+                        !gameState.openedCards.has(`${category.id}-${index}`)
+                    );
+                    return remainingCards.length > 0;
+                });
+                
+                // Render categories
+                renderCategories();
+                
+                // Reset UI
+                cardsContainer.classList.add('hidden');
+                categoriesContainer.classList.remove('hidden');
+                backBtn.classList.add('hidden');
+                newRoundBtn.classList.add('hidden');
+                
+                // Add bounce animation to header
+                document.querySelector('h1').classList.add('bounce');
+                setTimeout(() => {
+                    document.querySelector('h1').classList.remove('bounce');
+                }, 1000);
+            });
+        }
+        
+        // Start the game
+        window.addEventListener('DOMContentLoaded', initGame);
+    </script>
+</body>
+</html>
